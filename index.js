@@ -52,6 +52,12 @@ async function run() {
             res.send(cartData)
         })
 
+        app.delete('/cart/:id', async (req, res) => {
+            const id = { _id: new ObjectId(req.params.id) }
+            const deleted = await cartCollection.deleteOne(id)
+            res.send(deleted)
+        })
+
     } finally {
 
     }
