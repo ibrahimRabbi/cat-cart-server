@@ -27,14 +27,14 @@ async function run() {
     try {
         await client.connect();
 
-        app.get('/:category', async (req, res) => {
+        app.get('/category/:category', async (req, res) => {
             const { category } = req.params 
             const  query = {category:category} 
             const data = await dataCollection.find(query).toArray()
             res.send(data)
         })
 
-        app.get('/:category/:id', async (req, res) => {
+        app.get('/id/:category/:id', async (req, res) => {
             const params = req.params.id
             const id = { _id: new ObjectId(params) }
             const data = await dataCollection.findOne(id)
@@ -45,6 +45,11 @@ async function run() {
             const data = req.body
             const cart = await cartCollection.insertOne(data)
             res.send(cart)
+        })
+
+        app.get('/cart', async (req, res) => {
+            const cartData = await cartCollection.find().toArray()
+            res.send(cartData)
         })
 
     } finally {
