@@ -22,6 +22,7 @@ const client = new MongoClient(uri, {
 
 const dataCollection = client.db('snapSanle').collection('data')
 const cartCollection = client.db('snapSanle').collection('cart')
+const userCollection = client.db('snapSanle').collection('user')
 
 async function run() {
     try {
@@ -56,6 +57,12 @@ async function run() {
             const id = { _id: new ObjectId(req.params.id) }
             const deleted = await cartCollection.deleteOne(id)
             res.send(deleted)
+        })
+
+        app.post('/user', async (req, res) => {
+            const userData = req.body
+            const user = await userCollection.insertOne(userData)
+            res.send(user)
         })
 
     } finally {
