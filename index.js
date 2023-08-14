@@ -1,6 +1,10 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express')
 const cors = require('cors')
+const SSLCommerzPayment = require('sslcommerz-lts')
+const store_id = 'catca64d91c607f7fc'
+const store_passwd = 'catca64d91c607f7fc@ssl'
+const is_live = false //true for live, false for sandbox
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000
@@ -63,6 +67,51 @@ async function run() {
             const userData = req.body
             const user = await userCollection.insertOne(userData)
             res.send(user)
+        })
+
+
+//payment getway api
+        app.post("/payment", async (req, res) => {
+            const transection_id = new ObjectId().toString()
+          
+            const data = {
+                total_amount: req.body.amount,
+                currency: req.body.currency,
+                tran_id: transection_id,  
+                success_url: 'http://localhost:3030/success',
+                fail_url: 'http://localhost:3030/fail',
+                cancel_url: 'http://localhost:3030/cancel',
+                ipn_url: 'http://localhost:3030/ipn',
+                shipping_method: 'Courier',
+                product_name: 'Computer.',
+                product_category: 'Electronic',
+                product_profile: 'general',
+                cus_name: req.body.name,
+                cus_email: req.body.email,
+                cus_add1: 'Dhaka',
+                cus_add2: 'Dhaka',
+                cus_city: 'Dhaka',
+                cus_state: 'Dhaka',
+                cus_postcode: '1000',
+                cus_country: 'Bangladesh',
+                cus_phone: req.body.phone,
+                cus_fax: '01711111111',
+                ship_name: 'Customer Name',
+                ship_add1: 'Dhaka',
+                ship_add2: 'Dhaka',
+                ship_city: 'Dhaka',
+                ship_state: 'Dhaka',
+                ship_postcode: 1000,
+                ship_country: 'Bangladesh',
+            };
+
+            const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live)
+            sslcz.init(data)
+                .then(apiResponse => {   
+                let GatewayPageURL = apiResponse.GatewayPageURL
+                res.send({url:GatewayPageURL})
+                
+            });
         })
 
     } finally {
