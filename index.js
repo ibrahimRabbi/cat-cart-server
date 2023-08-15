@@ -78,7 +78,7 @@ async function run() {
                 total_amount: req.body.amount,
                 currency: req.body.currency,
                 tran_id: transection_id,  
-                success_url: 'http://localhost:3030/success',
+                success_url: `http://localhost:5000/payment/success/${transection_id}`,
                 fail_url: 'http://localhost:3030/fail',
                 cancel_url: 'http://localhost:3030/cancel',
                 ipn_url: 'http://localhost:3030/ipn',
@@ -109,9 +109,13 @@ async function run() {
             sslcz.init(data)
                 .then(apiResponse => {   
                 let GatewayPageURL = apiResponse.GatewayPageURL
-                res.send({url:GatewayPageURL})
-                
-            });
+                res.send({url:GatewayPageURL})            
+                });
+            
+            app.post('/payment/success/:id', async (req, res) => {
+                const id = req.params.id;
+                res.redirect(`http://localhost:5173/payment/success/${id}`)
+            })
         })
 
     } finally {
