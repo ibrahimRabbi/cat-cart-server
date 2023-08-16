@@ -86,7 +86,7 @@ async function run() {
                 total_amount: req.body.amount,
                 currency: req.body.currency,
                 tran_id: transection_id,  
-                success_url: `http://localhost:5000/payment/success/${transection_id}`,
+                success_url: `http://localhost:5000/payment/success/${transection_id}?email=${req.body.email}`,
                 fail_url: 'http://localhost:3030/fail',
                 cancel_url: 'http://localhost:3030/cancel',
                 ipn_url: 'http://localhost:3030/ipn',
@@ -118,8 +118,8 @@ async function run() {
                 pay: req.body.amount,
                 date: req.body.date,
                 tran_id: transection_id,
-               payment_status : false
-}
+                payment_status: false
+            }
             const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live)
             sslcz.init(data)
                 .then(apiResponse => {   
@@ -129,6 +129,8 @@ async function run() {
                 });
             
             app.post('/payment/success/:id', async (req, res) => {
+                const query = {email:req.query?.email}
+                
                 const tran_id = req.params.id;
                 const id = { tran_id: tran_id };
                 const options = { upsert: true };
@@ -139,9 +141,17 @@ async function run() {
                 };
                 const result = await orderCollection.updateOne(id, updateDoc, options);
                 if (result.modifiedCount > 0) {
+                    await cartCollection.deleteMany(query)
                     res.redirect(`http://localhost:5173/payment/success/${tran_id}`)
-                 }         
+                }     
             })
+        })
+
+
+        app.get('/orderhistory', async (req, res) => {
+            let query = { email: req.query?.email }
+            const data = await orderCollection.find(query).toArray()
+            res.send(data)
         })
 
     } finally {
@@ -158,3 +168,13 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log('server run on 5000 port')
 })
+
+
+
+
+
+
+
+
+
+  
