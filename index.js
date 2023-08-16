@@ -27,6 +27,7 @@ const client = new MongoClient(uri, {
 const dataCollection = client.db('snapSanle').collection('data')
 const cartCollection = client.db('snapSanle').collection('cart')
 const userCollection = client.db('snapSanle').collection('user')
+const orderCollection = client.db('snapSanle').collection('orderHistory')
 
 async function run() {
     try {
@@ -63,17 +64,24 @@ async function run() {
             res.send(deleted)
         })
 
+// user apiS
         app.post('/user', async (req, res) => {
             const userData = req.body
             const user = await userCollection.insertOne(userData)
             res.send(user)
         })
 
+        app.get('/user', async (req, res) => {
+            let query = { email: req.query.email }
+            const data = await userCollection.findOne(query) 
+            res.send(data)
+        })
+
 
 //payment getway api
         app.post("/payment", async (req, res) => {
             const transection_id = new ObjectId().toString()
-          
+           
             const data = {
                 total_amount: req.body.amount,
                 currency: req.body.currency,
@@ -104,17 +112,35 @@ async function run() {
                 ship_postcode: 1000,
                 ship_country: 'Bangladesh',
             };
-
+            const orderHistory = {
+                name: req.body.name,
+                email: req.body.email,
+                pay: req.body.amount,
+                date: req.body.date,
+                tran_id: transection_id,
+               payment_status : false
+}
             const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live)
             sslcz.init(data)
                 .then(apiResponse => {   
                 let GatewayPageURL = apiResponse.GatewayPageURL
-                res.send({url:GatewayPageURL})            
+                    res.send({ url: GatewayPageURL }) 
+                    orderCollection.insertOne(orderHistory)
                 });
             
             app.post('/payment/success/:id', async (req, res) => {
-                const id = req.params.id;
-                res.redirect(`http://localhost:5173/payment/success/${id}`)
+                const tran_id = req.params.id;
+                const id = { tran_id: tran_id };
+                const options = { upsert: true };
+                const updateDoc = {
+                    $set: {
+                        payment_status: true,
+                    },
+                };
+                const result = await orderCollection.updateOne(id, updateDoc, options);
+                if (result.modifiedCount > 0) {
+                    res.redirect(`http://localhost:5173/payment/success/${tran_id}`)
+                 }         
             })
         })
 
