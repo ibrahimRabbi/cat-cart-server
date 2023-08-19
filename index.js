@@ -34,10 +34,21 @@ async function run() {
         await client.connect();
 
         app.get('/category/:category', async (req, res) => {
-            const { category } = req.params 
-            const  query = {category:category} 
+            let query = {}
+
+            if (req.params?.category) {
+                query = { category: req.params.category }
+            }
+            if (req.params.category === 'shoes') {
+                query = {product:req.params.category}
+            }
             const data = await dataCollection.find(query).toArray()
             res.send(data)
+        })
+
+        app.get('/alldata', async (req, res) => {
+            const allData = await dataCollection.find().toArray()
+            res.send(allData)
         })
 
         app.get('/id/:category/:id', async (req, res) => {
@@ -72,7 +83,7 @@ async function run() {
         })
 
         app.get('/user', async (req, res) => {
-            let query = { email: req.query.email }
+            let query = { email: req.query?.email }
             const data = await userCollection.findOne(query) 
             res.send(data)
         })
@@ -81,7 +92,7 @@ async function run() {
 //payment getway api
         app.post("/payment", async (req, res) => {
             const transection_id = new ObjectId().toString()
-           
+        
             const data = {
                 total_amount: req.body.amount,
                 currency: req.body.currency,
