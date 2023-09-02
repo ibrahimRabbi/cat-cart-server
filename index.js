@@ -51,6 +51,12 @@ async function run() {
             res.send(allData)
         })
 
+        app.delete('/alldata/:id', async (req, res) => {
+            const id = { _id: new ObjectId(req.params.id) }
+            const deleted = await dataCollection.deleteOne(id)
+            res.send(deleted)
+        })
+
         app.get('/id/:category/:id', async (req, res) => {
             const params = req.params.id
             const id = { _id: new ObjectId(params) }
@@ -65,7 +71,12 @@ async function run() {
         })
 
         app.get('/cart', async (req, res) => {
-            const cartData = await cartCollection.find().toArray()
+            let query = {}
+            if (req.query?.email) {
+             query = { email: req.query.email }
+            }
+            
+            const cartData = await cartCollection.find(query).toArray()
             res.send(cartData)
         })
 
