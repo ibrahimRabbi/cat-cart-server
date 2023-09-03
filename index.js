@@ -51,6 +51,12 @@ async function run() {
             res.send(allData)
         })
 
+        app.post('/alldata', async (req, res) => {
+            
+            const inserted = await dataCollection.insertOne(req.body)
+            res.send(inserted)
+        })
+
         app.delete('/alldata/:id', async (req, res) => {
             const id = { _id: new ObjectId(req.params.id) }
             const deleted = await dataCollection.deleteOne(id)
