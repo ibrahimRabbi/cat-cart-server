@@ -47,7 +47,12 @@ async function run() {
         })
 
         app.get('/alldata', async (req, res) => {
-            const allData = await dataCollection.find().toArray()
+            let query = {}
+            if (req.query.search) {
+                 query = {title:{$regex:req.query.search,$options:'i'}}
+            }
+           
+            const allData = await dataCollection.find(query).toArray()
             res.send(allData)
         })
 
